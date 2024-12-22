@@ -37,7 +37,7 @@ class MemberController {
       })
         .select("avatar name membershipStatus")
         .populate("account", "balance")
-        .populate("seat", "seatNumber");
+        // .populate("seat", "seatNumber");
       if (allMembers.length === 0) {
         throw new Error("No members found in this organization");
       }
@@ -66,9 +66,15 @@ class MemberController {
         message: "To get member memberId is required",
       });
     try {
-      const member = await MemberModel.findById(memberId).populate(
-        "organization account seat payments lockers"
-      );
+      const member = await MemberModel.findById(memberId)
+      .populate({
+        path: 'services',
+        populate: {
+          path: 'seat',
+          model: 'Seat'  // Replace 'SeatModel' with the actual name of the seat model if different
+        }
+      })
+      .populate('payments');
       if (!member) throw new Error("No member found  with this id");
 
       //Authorization check
@@ -142,8 +148,10 @@ class MemberController {
 
   static createMember = async (req, res) => {
     // Extracting required fields from request body
+    
     const { name, phone, email, address, preparation, gender, monthlySeatFee } =
       req.body;
+      console.log(name, phone, email, address,preparation,gender, monthlySeatFee)
     let avatar = defaultAvatarUrl;
     const session = await mongoose.startSession();
     await session.startTransaction();
@@ -159,7 +167,7 @@ class MemberController {
         !preparation ||
         !monthlySeatFee
       ) {
-        throw new Error("All fields are required!");
+        throw new Error("All fields are requiredjksdfhkj!");
       }
 
       // Fetching required organizationId
